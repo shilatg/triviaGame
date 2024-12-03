@@ -1,0 +1,131 @@
+package com.example.automaticsecreteryreminder;
+
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+public class LoginActivity extends AppCompatActivity {
+
+    TextView ageText, fullnameText;
+    EditText username, password, age, fullname;
+    CheckBox checkBox;
+    Button loginRegBtn;
+
+    public boolean isPassOK(String pass) {
+        if (pass.length() < 4) return false;
+        boolean hasAZ = false;
+        boolean has09 = false;
+        for (int i = 0; i < pass.length(); i++) {
+            if (hasAZ && has09)
+                return true;
+            if (pass.charAt(i) >= '0' && pass.charAt(i) <= '9')
+                has09 = true;
+            if ((pass.charAt(i) >= 'a' && pass.charAt(i) <= 'z') || (pass.charAt(i) >= 'A' && pass.charAt(i) <= 'Z'))
+                hasAZ = true;
+        }
+        return has09 && hasAZ;
+    }
+
+    @SuppressLint("MissingInflatedId")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.logo), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+
+        FirebaseHelper fbh = new FirebaseHelper("Users");
+
+
+        ageText = findViewById(R.id.ageTxt);
+        fullnameText = findViewById(R.id.fullnameTxt);
+        username = findViewById(R.id.username);
+        password = findViewById(R.id.password);
+        age = findViewById(R.id.age);
+        fullname = findViewById(R.id.fullname);
+        checkBox = findViewById(R.id.checkBox);
+        loginRegBtn = findViewById(R.id.loginRegBtn);
+
+        checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            int visibility = isChecked ? View.VISIBLE : View.INVISIBLE;
+            age.setVisibility(visibility);
+            ageText.setVisibility(visibility);
+            fullname.setVisibility(visibility);
+            fullnameText.setVisibility(visibility);
+            loginRegBtn.setText(isChecked ? "Register" : "Login");
+        });
+
+        loginRegBtn.setOnClickListener(v -> {
+            // בדיקות קלט, ללא קשר למצב התחברות/הרשמה
+            String user = username.getText().toString();
+            String pass = password.getText().toString();
+
+            // שם משתמש וסיסמה עם 4+ תווים
+            if (user.length() < 4) {
+                Toast.makeText(LoginActivity.this, "Username is too short! (4+ chars)", Toast.LENGTH_SHORT).show();
+                return;
+            } else if (pass.length() < 4) {
+                Toast.makeText(LoginActivity.this, "Password is too short! (4+ chars)", Toast.LENGTH_SHORT).show();
+                return;
+            } else if (!isPassOK(pass)) {
+                Toast.makeText(LoginActivity.this, "Password must include at least 1 char of a-Z, 0-9", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (!checkBox.isChecked()) { // התחברות
+                // התחברות ל-Firebase
+                User loginUser = fbh.login(user, pass);
+                if (loginUser != null) {
+                    Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                    LoggedInUser.user = loginUser;
+
+                    // מרענן את החלון
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(LoginActivity.this, fbh.exists(user) ? "Incorrect Password" : "User doesn't exist!", Toast.LENGTH_SHORT).show();
+                }
+            } else { // הרשמה
+                String userAgeStr = age.getText().toString();
+                String userFullName = fullname.getText().toString();
+
+                if (userAgeStr.isEmpty() || userFullName.isEmpty()) {
+                    Toast.makeText(LoginActivity.this, "All fields are required!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                int userAge;
+                try {
+                    userAge = Integer.parseInt(userAgeStr);
+                } catch (NumberFormatException e) {
+                    Toast.makeText(LoginActivity.this, "Please enter a valid age!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                User userToRegister = new User(user, pass, userAge, userFullName);
+                if (fbh.register(userToRegister)) {
+                    Toast.makeText(LoginActivity.this, "User successfully registered!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(LoginActivity.this, "Register failed! Username already exists.", Toast.LENGTH_SHORT).show();
+                }
+            }
+   });
+}
+}
