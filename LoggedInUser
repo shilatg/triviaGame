@@ -1,0 +1,7 @@
+package com.example.automaticsecreteryreminder;
+
+public class LoggedInUser {
+
+static User user;
+
+}
