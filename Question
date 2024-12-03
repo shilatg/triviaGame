@@ -1,0 +1,43 @@
+package com.example.automaticsecreteryreminder;
+
+public class Question {
+
+
+
+    String question;
+    String[] answers;
+    int correctAnswer;
+
+    public Question(String question, String[] answers,int correctAnswer) {
+        this.question = question;
+        this.answers = answers;
+        this.correctAnswer = correctAnswer;
+    }
+
+    public String getQuestion() {
+        return question;
+    }
+
+    public void setQuestion(String question) {
+        this.question = question;
+    }
+
+    public String[] getOptions() {
+        return answers;
+    }
+
+    public String getAnsA() { return this.answers[0];}
+    public String getAnsB() { return this.answers[1];}
+    public String getAnsC() { return this.answers[2];}
+    public String getAnsD() { return this.answers[3];}
+
+    public String getRightAns() {return this.answers[this.correctAnswer];}
+    public void setAnsA(String ans) {this.answers[0] = ans;}
+    public void setAnsB(String ans) {this.answers[1] = ans;}
+    public void setAnsC(String ans) {this.answers[2] = ans;}
+    public void setAnsD(String ans) {this.answers[3] = ans;}
+
+    public void setAnswers(String[] answers) {
+        this.answers = answers;
+    }
+}
