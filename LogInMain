@@ -1,0 +1,65 @@
+package com.example.automaticsecreteryreminder;
+
+import android.annotation.SuppressLint;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class LogInMain extends AppCompatActivity {
+
+    TextView helloTv, loggedNameTv;
+    Button goToLogin, logout;
+
+    @SuppressLint("MissingInflatedId")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        goToLogin = findViewById(R.id.goToLogin);
+        loggedNameTv = findViewById(R.id.tvLoggedName);
+        helloTv = findViewById(R.id.textView);
+        logout = findViewById(R.id.logoutBtn);
+
+        updateUI();
+
+        goToLogin.setOnClickListener(v -> {
+            Intent intent = new Intent(this, PlayScreen.class);
+            startActivity(intent);
+        });
+
+        logout.setOnClickListener(v -> showLogoutDialog());
+    }
+
+    private void updateUI() {
+        boolean userLoggedIn = LoggedInUser.user != null;
+        loggedNameTv.setVisibility(userLoggedIn ? View.VISIBLE : View.INVISIBLE);
+        helloTv.setVisibility(userLoggedIn ? View.VISIBLE : View.INVISIBLE);
+        logout.setVisibility(userLoggedIn ? View.VISIBLE : View.INVISIBLE);
+        goToLogin.setVisibility(userLoggedIn ? View.INVISIBLE : View.VISIBLE);
+
+        if (userLoggedIn) {
+            loggedNameTv.setText(LoggedInUser.user.getFullname());
+        }
+    }
+
+    private void showLogoutDialog() {
+        new AlertDialog.Builder(this)
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    LoggedInUser.user = null;
+                    Intent intent = new Intent(LogInMain.this, MainActivity.class);
+                    startActivity(intent);
+                })
+                .setNegativeButton("Not yet", (dialog, which) ->
+                        Toast.makeText(LogInMain.this, "Nothing happened!", Toast.LENGTH_SHORT).show()
+                )
+                .show();
+}
+}
